@@ -8,6 +8,7 @@
 {{#user}}
 
 Welcome, {{username}}.
+<a href="/logout">Logout</a>
 
 <br><br>
 
@@ -19,10 +20,11 @@ Welcome, {{username}}.
 
 <br><br>
 
-{{#event}}
-<input type="datetime-local" value="{{date}}" disabled> {{description}}<br>
-{{/event}}
+{{#events}}
+<input type="datetime-local" value="{{date}}" disabled/> {{description}}<br>
+{{/events}}
 
 {{/user}}
+
 </body>
 </html>

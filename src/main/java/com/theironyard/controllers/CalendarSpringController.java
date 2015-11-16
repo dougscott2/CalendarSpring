@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -67,7 +68,7 @@ public class CalendarSpringController {
             user.password = PasswordHash.createHash(password);
             users.save(user);
         }
-        else if (PasswordHash.validatePassword(password, user.password)) {
+        else if (!PasswordHash.validatePassword(password, user.password)) {
             throw new Exception("Wrong password.");
         }
 
@@ -76,18 +77,24 @@ public class CalendarSpringController {
         return "redirect:/";
     }
 
-    @RequestMapping("/addevent")
+    @RequestMapping("/add-event")
     public String addEvent(HttpSession session, String description, String date) throws Exception {
-        String username = (String) session.getAttribute("user");
+        String username = (String) session.getAttribute("username");
         if (username == null) {
             throw new Exception("Not logged in.");
         }
 
         Event e = new Event();
         e.date = LocalDateTime.parse(date);
+        e.description = description;
         e.user = users.findOneByUsername(username);
         events.save(e);
 
+        return "redirect:/";
+    }
+    @RequestMapping("logout")
+    public String logout(HttpSession session){
+        session.invalidate();
         return "redirect:/";
     }
 }
