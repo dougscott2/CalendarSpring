@@ -6,9 +6,12 @@ import com.theironyard.services.EventRepository;
 import com.theironyard.services.UserRepository;
 import com.theironyard.util.PasswordHash;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -47,14 +50,25 @@ public class CalendarSpringController {
     }
 
     @RequestMapping("/")
-    public String home(HttpSession session, Model model) {
+    public String home(HttpSession session,
+                       Model model,
+                       @RequestParam (defaultValue = "0") int page) {
         String username = (String) session.getAttribute("username");
         if (username == null) {
             return "login";
         }
+        PageRequest pr = new PageRequest(page, 5);
+       //Page p;
+        User user = users.findOneByUsername(username);
+        Page<Event> pagedEvents = events.findByUser(pr, user);
 
-        model.addAttribute("user", users.findOneByUsername(username));
+        model.addAttribute("user", user);
         model.addAttribute("now", LocalDateTime.now());
+        model.addAttribute("pagedEvents", events.findByUser(pr, user));
+        model.addAttribute("nextPage", page+1);
+        model.addAttribute("showNext", pagedEvents.hasNext());
+        model.addAttribute("previousPage", page-1);
+        model.addAttribute("showPrevious", pagedEvents.hasPrevious());
 
         return "home";
     }
@@ -71,9 +85,7 @@ public class CalendarSpringController {
         else if (!PasswordHash.validatePassword(password, user.password)) {
             throw new Exception("Wrong password.");
         }
-
         session.setAttribute("username", username);
-
         return "redirect:/";
     }
 
@@ -97,4 +109,6 @@ public class CalendarSpringController {
         session.invalidate();
         return "redirect:/";
     }
+
+
 }
